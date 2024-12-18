@@ -1465,5 +1465,60 @@
         "default": "scheme-1"
       }
     ]
+  },
+  {
+    "name": "GWP Settings",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Threshold GWP",
+        "info": "These settings are used to define the Cart Threshold based GWP"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_threshold_gwp",
+        "label": "Enable Thresnold GWP",
+        "default": false
+      },
+      {
+        "type": "number",
+        "id": "threshold_gwp_amount",
+        "label": "Threshold GWP Dollar Amount",
+        "info": "The dollar amount (in cents) for your GWP threshold e.g. 7500 for $75.00"
+      },
+      {
+        "type": "collection",
+        "id": "threshold_gwp_collection",
+        "label": "Threshold GWP Collection",
+        "info": "The collection of products made up of the GWP products"
+      },
+      {
+        "type": "header",
+        "content": "Customer GWP",
+        "info": "These settings are used to define the Customer GWP"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_customer_gwp",
+        "label": "Enable Customer GWP"
+      },
+      {
+        "type": "text",
+        "id": "customer_gwp_valid_tags",
+        "label": "Customer GWP Valid Tags",
+        "info": "A comma separated list of tags that award a GWP"
+      },
+      {
+        "type": "text",
+        "id": "customer_gwp_invalid_tags",
+        "label": "Customer GWP Invalid Tags",
+        "info": "A comma separated list of tags that prevent a user from getting a GWP"
+      },
+      {
+        "type": "product",
+        "id": "customer_gwp_product",
+        "label": "Customer GWP Product"
+      }
+    ]
   }
 ]

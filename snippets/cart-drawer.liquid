@@ -9,6 +9,7 @@
 {{ 'component-card.css' | asset_url | stylesheet_tag }}
 
 <script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'cart-extension.js' | asset_url }}" defer="defer"></script>
 <script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
 
 <style>
@@ -74,6 +75,26 @@
           </span>
         </button>
       </div>
+      {% comment %}
+        Progress Bar container
+      {% endcomment %}
+      {% if settings.enable_threshold_gwp %}
+        <div>
+          <threshold-progress-bar data-threshold-value="{{ settings.threshold_gwp_amount }}" data-cart-value="{{ cart.total_price }}">
+            <div class="h-1 bg-black w-full relative">
+              <div class="bg-red-300 h-2 w-1/2 absolute -top-[1px]" data-progress>
+
+              </div>
+            </div>
+
+              <div class="hidden" data-gift-message>
+                You've earned a free gift!
+              </div>
+          </threshold-progress-bar>
+          <threshold-gwp data-gwp-collection="{{ settings.threshold_gwp_collection }}">
+          </threshold-gwp>
+        </div>
+      {% endif %}
       <cart-drawer-items
         {% if cart == empty %}
           class=" is-empty"
@@ -454,6 +475,12 @@
           <div id="CartDrawer-CartErrors" role="alert"></div>
         </form>
       </cart-drawer-items>
+      {% comment %}
+        Customer gwp container
+      {% endcomment %}
+      <div>
+        <customer-gwp data-customer-gwp="{{ settings.customer_gwp_product }}"></customer-gwp>
+      </div>
       <div class="drawer__footer">
         {%- if settings.show_cart_note -%}
           <details id="Details-CartDrawer">
