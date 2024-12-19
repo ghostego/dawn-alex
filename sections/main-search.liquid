@@ -263,6 +263,10 @@
                     {%- assign lazy_load = true -%}
                   {%- endif -%}
 
+                  {% if item.tags contains 'keep-hidden' %}
+                    {% continue %}
+                  {% endif %}
+
                   <li
                     class="grid__item{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
                     {% if settings.animations_reveal_on_scroll %}

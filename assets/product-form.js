@@ -40,6 +40,15 @@ if (!customElements.get('product-form')) {
           formData.append('sections_url', window.location.pathname);
           this.cart.setActiveElement(document.activeElement);
         }
+        const bundleBuilder = document.querySelector('bundle-builder');
+        if (bundleBuilder) {
+          const bundleOptions = bundleBuilder.querySelectorAll('[data-bundle-product]');
+          [...bundleOptions]
+            .filter((option) => option.checked)
+            .forEach((x) => {
+              formData.append('additional_products[]', x.id);
+            });
+        }
         config.body = formData;
 
         fetch(`${routes.cart_add_url}`, config)

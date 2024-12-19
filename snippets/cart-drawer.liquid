@@ -78,20 +78,29 @@
       {% comment %}
         Progress Bar container
       {% endcomment %}
+
+      {% comment %}
+        WE HAVE MADE A CHANGE HERE
+      {% endcomment %}
       {% if settings.enable_threshold_gwp %}
-        <div>
-          <threshold-progress-bar data-threshold-value="{{ settings.threshold_gwp_amount }}" data-cart-value="{{ cart.total_price }}">
-            <div class="h-1 bg-black w-full relative">
-              <div class="bg-red-300 h-2 w-1/2 absolute -top-[1px]" data-progress>
-
-              </div>
+        <div data-threshold-gwp-container class="border-b border-solid border-black mb-5">
+          <threshold-progress-bar
+            data-threshold-value="{{ settings.threshold_gwp_amount }}"
+            data-cart-value="{{ cart.total_price }}"
+          >
+            <div class="hidden text-center pb-1" data-gift-message></div>
+            <div class="h-1 bg-black w-full relative mb-4">
+              <div class="bg-red-300 h-2 w-1/2 absolute -top-[1px] !flex" data-progress></div>
             </div>
-
-              <div class="hidden" data-gift-message>
-                You've earned a free gift!
-              </div>
+            
           </threshold-progress-bar>
-          <threshold-gwp data-gwp-collection="{{ settings.threshold_gwp_collection }}">
+          <threshold-gwp
+            data-gwp-collection="{{ settings.threshold_gwp_collection }}"
+            data-threshold-value="{{ settings.threshold_gwp_amount }}"
+            data-cart-value="{{ cart.total_price }}"
+            data-cart-items="{{ cart.items | json | escape }}"
+            class="max-h-0 h-full transition-all flex overflow-hidden"
+          >
           </threshold-gwp>
         </div>
       {% endif %}
@@ -293,6 +302,11 @@
                           if item.variant.quantity_price_breaks.size > 0
                             assign has_vol_pricing = true
                           endif
+
+                          assign quantity_enabled = true
+                          if item.properties["_threshold_gwp_product"] or item.properties["_customer_gwp_product"]
+                            assign quantity_enabled = false
+                          endif
                         -%}
                         <td
                           class="cart-item__quantity {% if has_qty_rules or has_vol_pricing %} cart-item__quantity--info{% endif %}"
@@ -302,8 +316,15 @@
                           <quantity-popover>
                             <div class="cart-item__quantity-wrapper quantity-popover-wrapper">
                               <div class="quantity-popover-container{% if has_qty_rules or has_vol_pricing %} quantity-popover-container--hover{% endif %}">
-                                <quantity-input class="quantity cart-quantity">
-                                  <button class="quantity__button" name="minus" type="button">
+                                <quantity-input class="quantity cart-quantity  {% unless quantity_enabled %} opacity-50 {% endunless %}">
+                                  <button 
+                                    class="quantity__button  {% unless quantity_enabled %} opacity-50 {% endunless %}" 
+                                    name="minus" 
+                                    type="button"
+                                    {% unless quantity_enabled %}
+                                      disabled
+                                    {% endunless %}
+                                    >
                                     <span class="visually-hidden">
                                       {{-
                                         'products.product.quantity.decrease'
@@ -316,11 +337,14 @@
                                     </span>
                                   </button>
                                   <input
-                                    class="quantity__input"
+                                    class="quantity__input  {% unless quantity_enabled %} opacity-50 {% endunless %}"
                                     type="number"
                                     data-quantity-variant-id="{{ item.variant.id }}"
                                     name="updates[]"
                                     value="{{ item.quantity }}"
+                                    {% unless quantity_enabled %}
+                                      disabled
+                                    {% endunless %}
                                     {% # theme-check-disable %}
                                     data-cart-quantity="{{ cart | item_count_for_variant: item.variant.id }}"
                                     min="0"
@@ -334,7 +358,14 @@
                                     id="Drawer-quantity-{{ item.index | plus: 1 }}"
                                     data-index="{{ item.index | plus: 1 }}"
                                   >
-                                  <button class="quantity__button" name="plus" type="button">
+                                  <button 
+                                    class="quantity__button {% unless quantity_enabled %} opacity-50 {% endunless %}" 
+                                    name="plus" 
+                                    type="button"
+                                    {% unless quantity_enabled %}
+                                      disabled
+                                    {% endunless %}
+                                  >
                                     <span class="visually-hidden">
                                       {{-
                                         'products.product.quantity.increase'
@@ -478,9 +509,47 @@
       {% comment %}
         Customer gwp container
       {% endcomment %}
-      <div>
-        <customer-gwp data-customer-gwp="{{ settings.customer_gwp_product }}"></customer-gwp>
-      </div>
+
+      {% liquid
+        assign valid_tags = settings.customer_gwp_valid_tags | split: ','
+        assign invalid_tags = settings.customer_gwp_invalid_tags | split: ','
+        assign show_customer_gwp = false
+        for tag in customer.tags
+          if invalid_tags contains tag
+            assign show_customer_gwp = false
+            break
+          endif
+          if valid_tags contains tag
+            assign show_customer_gwp = true
+          endif
+        endfor
+      %}
+
+      {% comment %}
+        WE HAVE MADE A CHANGE HERE
+      {% endcomment %}
+      {% if settings.enable_customer_gwp %}
+        <div data-customer-gwp-container class="mb-2 pt-2 border-t border-solid border-gray-200">
+          <customer-gwp
+            data-customer-gwp="{{ settings.customer_gwp_product }}"
+            data-cart-items="{{ cart.items | json | escape }}"
+            data-valid-customer-group="{{ show_customer_gwp }}"
+            class="max-h-0 h-full transition-all overflow-hidden flex flex-row gap-2 text-center justify-center"
+          >
+            <div data-image-holder class="max-w-[100px]">
+
+            </div>
+            <div class="flex flex-col justify-center items-center">
+              <h3>Thank you for being a loyal customer!</h3>
+              <p>Enjoy this product, on us.</p>
+              <button 
+                class="bg-black text-white pointer-cursor py-1 px-2 mt-4 transition-all hover:bg-white hover:text-black border border-solid border-black w-fit" 
+                data-free-gift-atc
+              >Add Free Gift to Cart</button>
+              </div>
+          </customer-gwp>
+        </div>
+      {% endif %}
       <div class="drawer__footer">
         {%- if settings.show_cart_note -%}
           <details id="Details-CartDrawer">

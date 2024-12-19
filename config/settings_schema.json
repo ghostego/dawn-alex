@@ -1477,7 +1477,7 @@
       {
         "type": "checkbox",
         "id": "enable_threshold_gwp",
-        "label": "Enable Thresnold GWP",
+        "label": "Enable Threshold GWP",
         "default": false
       },
       {
