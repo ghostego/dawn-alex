@@ -73,7 +73,6 @@ class BundleBuilder extends HTMLElement {
   }
 
   async addItemsToCart(items) {
-    const cart_items = document.querySelector('cart-drawer-items');
     const url = '/cart/add.js';
     try {
       const response = await fetch(url, {
@@ -84,16 +83,15 @@ class BundleBuilder extends HTMLElement {
         body: JSON.stringify(items),
       });
       const result = await response.json();
-      const cartUpdateEvent = new Event('gwpAtc');
       const atcEvent = new Event('atc');
-
       const cart_drawer = document.querySelector('cart-drawer');
-      cart_drawer.classList.remove('is-empty');
-
-      const drawer__inner = cart_drawer.querySelector('.drawer__inner');
-      const empty_drawer_el = drawer__inner.querySelector('.drawer__inner-empty');
-      if (!!empty_drawer_el) empty_drawer_el.classList.remove('drawer__inner-empty');
-      cart_drawer.dispatchEvent(atcEvent);
+      if (cart_drawer) {
+        cart_drawer.classList.remove('is-empty');
+        const drawer__inner = cart_drawer.querySelector('.drawer__inner');
+        const empty_drawer_el = drawer__inner.querySelector('.drawer__inner-empty');
+        if (!!empty_drawer_el) empty_drawer_el.classList.remove('drawer__inner-empty');
+        cart_drawer.dispatchEvent(atcEvent);
+      }
       const bundleInputs = this.querySelector('[data-bundle-input-holder]').querySelectorAll('[data-bundle-product]');
       bundleInputs.forEach((input) => {
         const siblingImage = input.nextElementSibling;
@@ -103,8 +101,6 @@ class BundleBuilder extends HTMLElement {
         siblingImage.classList.remove('border-teal-600');
         this.bundleAddToCart.textContent = `Select ${this.bundleSize} more options`;
       });
-
-      // cart_items.dispatchEvent(cartUpdateEvent);
     } catch (error) {
       console.error('ERROR: ', error);
     }

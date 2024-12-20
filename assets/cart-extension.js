@@ -26,7 +26,6 @@ class thresholdProgressBar extends HTMLElement {
       this.gwpMessage.classList.remove('hidden');
     }
 
-    // Dispatch event to parent component if threshold is met
     const thresholdGWP = this.parentElement.querySelector('threshold-gwp');
     if (thresholdGWP) {
       thresholdGWP.dispatchEvent(
@@ -148,7 +147,6 @@ class customerGWP extends HTMLElement {
     button.addEventListener('click', () => {
       addItemToCart(item.variants.edges[0].node.id.split('ProductVariant/').pop(), '_customer_gwp_product');
     });
-    console.log(image_container.children.length);
     if (image_container.children.length == 0) {
       product_image.src = item.images.edges[0].node.src;
       image_container.appendChild(product_image);
