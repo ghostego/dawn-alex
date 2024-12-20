@@ -1,4 +1,4 @@
-const storefrontAccessToken = 'd361d4c2733c429312daf85fe5030681';
+const storefrontAccessToken = '';
 const storefrontUrl = '/api/2024-10/graphql.json';
 
 // Storefront API Functions
