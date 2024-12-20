@@ -82,7 +82,7 @@
       {% comment %}
         WE HAVE MADE A CHANGE HERE
       {% endcomment %}
-      {% if settings.enable_threshold_gwp %}
+      {% if settings.enable_threshold_gwp and cart.items.size > 0 %}
         <div data-threshold-gwp-container class="border-b border-solid border-black mb-5">
           <threshold-progress-bar
             data-threshold-value="{{ settings.threshold_gwp_amount }}"
@@ -145,14 +145,21 @@
                       </th>
                     </tr>
                   </thead>
-
                   <tbody role="rowgroup">
                     {%- for item in cart.items -%}
+                      {% assign show_product_link = true %}
                       <tr id="CartDrawer-Item-{{ item.index | plus: 1 }}" class="cart-item" role="row">
                         <td class="cart-item__media" role="cell" headers="CartDrawer-ColumnProductImage">
+                          {% if item.properties %}
+                            {% if item.properties['_customer_gwp_product'] or item.properties['_threshold_gwp_product'] %}
+                              {% assign show_product_link = false %}
+                            {% endif %}
+                          {% endif %}
                           {% if item.image %}
                             {% comment %} Leave empty space due to a:empty CSS display: none rule {% endcomment %}
-                            <a href="{{ item.url }}" class="cart-item__link" tabindex="-1" aria-hidden="true"> </a>
+                            {% if show_product_link %}
+                              <a href="{{ item.url }}" class="cart-item__link" tabindex="-1" aria-hidden="true"> </a>
+                            {% endif %}
                             <img
                               class="cart-item__image"
                               src="{{ item.image | image_url: width: 300 }}"
@@ -168,10 +175,13 @@
                           {%- if settings.show_vendor -%}
                             <p class="caption-with-letter-spacing light">{{ item.product.vendor }}</p>
                           {%- endif -%}
-
+                          {% if show_product_link %}
                           <a href="{{ item.url }}" class="cart-item__name h4 break">
                             {{- item.product.title | escape -}}
                           </a>
+                          {% else %}
+                            <h4 class="break">{{- item.product.title | escape -}}</h4>
+                          {% endif %}
 
                           {%- if item.original_price != item.final_price -%}
                             <div class="cart-item__discounted-prices">
@@ -304,7 +314,7 @@
                           endif
 
                           assign quantity_enabled = true
-                          if item.properties["_threshold_gwp_product"] or item.properties["_customer_gwp_product"]
+                          if item.properties["_threshold_gwp_product"] or item.properties["_customer_gwp_product"] or item.properties["_bundle_key"]
                             assign quantity_enabled = false
                           endif
                         -%}
@@ -379,21 +389,27 @@
                                   </button>
                                 </quantity-input>
                               </div>
-                              <cart-remove-button
-                                id="CartDrawer-Remove-{{ item.index | plus: 1 }}"
-                                data-index="{{ item.index | plus: 1 }}"
-                              >
-                                <button
-                                  type="button"
-                                  class="button button--tertiary cart-remove-button"
-                                  aria-label="{{ 'sections.cart.remove_title' | t: title: item.title | escape }}"
-                                  data-variant-id="{{ item.variant.id }}"
+                              {% unless item.properties['_bundle_child'] %}
+                                <cart-remove-button
+                                  id="CartDrawer-Remove-{{ item.index | plus: 1 }}"
+                                  data-index="{{ item.index | plus: 1 }}"
+                                  {% if item.properties['_bundle_children_ids'] %}
+                                    data-bundle-key="{{ item.properties['_bundle_key'] }}"
+                                    data-bundle-children="{{ item.properties['_bundle_children_ids'] }}"
+                                  {% endif %}
                                 >
-                                  <span class="svg-wrapper">
-                                    {{- 'icon-remove.svg' | inline_asset_content -}}
-                                  </span>
-                                </button>
-                              </cart-remove-button>
+                                  <button
+                                    type="button"
+                                    class="button button--tertiary cart-remove-button"
+                                    aria-label="{{ 'sections.cart.remove_title' | t: title: item.title | escape }}"
+                                    data-variant-id="{{ item.variant.id }}"
+                                  >
+                                    <span class="svg-wrapper">
+                                      {{- 'icon-remove.svg' | inline_asset_content -}}
+                                    </span>
+                                  </button>
+                                </cart-remove-button>
+                              {% endunless%}
                             </div>
                             {%- if has_qty_rules or has_vol_pricing -%}
                               <button
@@ -528,7 +544,7 @@
       {% comment %}
         WE HAVE MADE A CHANGE HERE
       {% endcomment %}
-      {% if settings.enable_customer_gwp %}
+      {% if settings.enable_customer_gwp and cart.items.size > 0 %}
         <div data-customer-gwp-container class="mb-2 pt-2 border-t border-solid border-gray-200">
           <customer-gwp
             data-customer-gwp="{{ settings.customer_gwp_product }}"
@@ -543,7 +559,7 @@
               <h3>Thank you for being a loyal customer!</h3>
               <p>Enjoy this product, on us.</p>
               <button 
-                class="bg-black text-white pointer-cursor py-1 px-2 mt-4 transition-all hover:bg-white hover:text-black border border-solid border-black w-fit" 
+                class="bg-black text-white cursor-pointer py-1 px-2 mt-4 transition-all hover:bg-white hover:text-black border border-solid border-black w-fit" 
                 data-free-gift-atc
               >Add Free Gift to Cart</button>
               </div>

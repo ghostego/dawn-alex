@@ -5,6 +5,9 @@ class CartRemoveButton extends HTMLElement {
     this.addEventListener('click', (event) => {
       event.preventDefault();
       const cartItems = this.closest('cart-items') || this.closest('cart-drawer-items');
+      if (this.dataset.bundleChildren && this.dataset.bundleKey) {
+        cartItems.removeBundleItems(this.dataset.bundleKey);
+      }
       cartItems.updateQuantity(this.dataset.index, 0);
     });
   }
@@ -29,7 +32,6 @@ class CartItems extends HTMLElement {
 
   connectedCallback() {
     this.cartUpdateUnsubscriber = subscribe(PUB_SUB_EVENTS.cartUpdate, (event) => {
-      console.log('subscribed, now we updating');
       if (event.source === 'cart-items') {
         return;
       }
@@ -54,6 +56,35 @@ class CartItems extends HTMLElement {
     event.target.reportValidity();
     this.resetQuantityInput(index);
     event.target.select();
+  }
+
+  async getCart() {
+    const response = await fetch('/cart.js');
+    if (!response.ok) throw new Error('Failed to fetch cart');
+    return response.json();
+  }
+
+  async removeBundleItems(bundleKey) {
+    if (!bundleKey) return;
+    const updateObject = {
+      updates: {},
+    };
+
+    const cart = await this.getCart();
+    const cart_item_data = cart.items;
+    cart_item_data.forEach((item) => {
+      const { properties } = item;
+      if (properties['_bundle_key'] == bundleKey) {
+        updateObject.updates[item.key] = 0;
+      }
+    });
+    const body = JSON.stringify(updateObject);
+    fetch('/cart/update.js', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body }).then(
+      (response) => {
+        this.onCartUpdate();
+        return response.text();
+      }
+    );
   }
 
   validateQuantity(event) {

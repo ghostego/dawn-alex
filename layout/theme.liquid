@@ -47,6 +47,7 @@
       assign body_font_italic = settings.type_body_font | font_modify: 'style', 'italic'
       assign body_font_bold_italic = body_font_bold | font_modify: 'style', 'italic'
     %}
+    <script src="{{ 'requests.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'bundle-builder.js' | asset_url }}" defer="defer"></script>
 
     {% style %}

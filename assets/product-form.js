@@ -10,16 +10,17 @@ if (!customElements.get('product-form')) {
         this.form.addEventListener('submit', this.onSubmitHandler.bind(this));
         this.cart = document.querySelector('cart-notification') || document.querySelector('cart-drawer');
         this.submitButton = this.querySelector('[type="submit"]');
-        this.submitButtonText = this.submitButton.querySelector('span');
+        if (this.submitButton) this.submitButtonText = this.submitButton.querySelector('span');
 
-        if (document.querySelector('cart-drawer')) this.submitButton.setAttribute('aria-haspopup', 'dialog');
+        if (document.querySelector('cart-drawer') && this.submitButton)
+          this.submitButton.setAttribute('aria-haspopup', 'dialog');
 
         this.hideErrors = this.dataset.hideErrors === 'true';
       }
 
       onSubmitHandler(evt) {
         evt.preventDefault();
-        if (this.submitButton.getAttribute('aria-disabled') === 'true') return;
+        if (this.submitButton?.getAttribute('aria-disabled') === 'true' || !this.submitButton) return;
 
         this.handleErrorMessage();
 

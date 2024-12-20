@@ -4,6 +4,14 @@ class CartDrawer extends HTMLElement {
 
     this.addEventListener('keyup', (evt) => evt.code === 'Escape' && this.close());
     this.querySelector('#CartDrawer-Overlay').addEventListener('click', this.close.bind(this));
+    this.addEventListener('atc', () => {
+      this.open();
+      const cartDrawerItems = this.querySelector('cart-drawer-items');
+      const atcEvent = new Event('gwpAtc');
+      setTimeout(() => {
+        cartDrawerItems.dispatchEvent(atcEvent);
+      }, 500);
+    });
     this.setHeaderCartIconAccessibility();
   }
 

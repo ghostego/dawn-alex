@@ -1,234 +1,4 @@
-const cart_items = document.querySelector('cart-drawer-items');
 
-async function getProductsByCollectionHandle(collectionHandle) {
-  const query = `
-    query($handle: String!) {
-      collectionByHandle(handle: $handle) {
-        id
-        title
-        products(first: 100) {
-          edges {
-            node {
-              id
-              title
-              handle
-              productType
-              vendor
-              variants(first: 10) {
-                edges {
-                  node {
-                    id
-                    title
-                    sku
-                    priceV2 {
-                      amount
-                      currencyCode
-                    }
-                    availableForSale
-                  }
-                }
-              }
-              images(first: 1) {
-                edges {
-                  node {
-                    src
-                    altText
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-  const fetchProducts = async () => {
-    const variables = {
-      handle: collectionHandle,
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-
-    const data = await response.json();
-    const products = data.data.collectionByHandle.products.edges.map((edge) => edge.node);
-    return products;
-  };
-
-  try {
-    const allProducts = await fetchProducts();
-    return allProducts;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  }
-}
-
-async function getProductByHandle(productHandle) {
-  const query = `query getProductByHandle($handle: String!) {
-    productByHandle(handle: $handle) {
-      id
-      title
-      descriptionHtml
-      productType
-      vendor
-      handle
-      tags
-      variants(first: 10) {
-        edges {
-          node {
-            id
-            title
-            sku
-            priceV2 {
-              amount
-              currencyCode
-            }
-            availableForSale
-          }
-        }
-      }
-      images(first: 10) {
-        edges {
-          node {
-            src
-            altText
-          }
-        }
-      }
-    }
-  }`;
-  const fetchProduct = async () => {
-    const variables = {
-      handle: productHandle,
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-
-    const data = await response.json();
-    const product = data.data.productByHandle;
-    return product;
-  };
-
-  try {
-    const product = await fetchProduct();
-    return product;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-  }
-}
-
-async function addItemToCart(variant_id, gwp_attribute) {
-  const attributesObject = {};
-  attributesObject[gwp_attribute] = true;
-  const data = {
-    id: variant_id,
-    quantity: 1,
-    properties: attributesObject,
-  };
-  const url = '/cart/add.js';
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    const result = await response.json();
-    const cartUpdateEvent = new Event('gwpAtc');
-    cart_items.dispatchEvent(cartUpdateEvent);
-  } catch (error) {
-    console.error('ERROR: ', error);
-  }
-}
-
-async function removeItemsFromCart(items) {
-  let updates = {};
-  items.forEach((item) => {
-    updates[item.key] = 0;
-  });
-  fetch(window.Shopify.routes.root + 'cart/update.js', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ updates }),
-  })
-    .then((response) => {
-      const cartUpdateEvent = new Event('gwpAtc');
-      cart_items.dispatchEvent(cartUpdateEvent);
-      return response.json();
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
-}
-
-// Example usage
-
-function renderThresholdGWP(items = []) {
-  const gwp_container = document.createElement('div');
-  const threshold_gwp_container = document.querySelector('threshold-gwp');
-  gwp_container.classList.add('flex', 'flex-row', 'gap-2');
-  items.forEach((item) => {
-    const new_product_card = document.createElement('div');
-    const product_image = document.createElement('img');
-    const button = document.createElement('button');
-    button.textContent = 'add to cart';
-    button.classList.add(
-      'bg-black',
-      'text-white',
-      'pointer-cursor',
-      'py-1',
-      'px-2',
-      'm-4',
-      'transition-all',
-      'hover:bg-white',
-      'hover:text-black',
-      'border',
-      'border-solid',
-      'border-black',
-      'w-fit',
-      'text-[12px]'
-    );
-    button.addEventListener('click', () =>
-      addItemToCart(item.variants.edges[0].node.id.split('ProductVariant/').pop(), '_threshold_gwp_product')
-    );
-    product_image.src = item.images.edges[0].node.src;
-    new_product_card.append(product_image);
-    new_product_card.append(button);
-    gwp_container.appendChild(new_product_card);
-  });
-  threshold_gwp_container.append(gwp_container);
-}
-
-function renderCustomerGWP(item = {}) {
-  const gwp_container = document.createElement('div');
-  const image_container = document.querySelector('[data-image-holder]');
-  const customer_gwp_container = document.querySelector('customer-gwp');
-  const product_image = document.createElement('img');
-  const button = document.querySelector('[data-free-gift-atc]');
-  button.addEventListener('click', () => {
-    addItemToCart(item.variants.edges[0].node.id.split('ProductVariant/').pop(), '_customer_gwp_product');
-  });
-  product_image.src = item.images.edges[0].node.src;
-  image_container.appendChild(product_image);
-  customer_gwp_container.append(gwp_container);
-  customer_gwp_container.classList.remove('max-h-0');
-}
 
 class thresholdProgressBar extends HTMLElement {
   constructor() {
@@ -282,7 +52,7 @@ class thresholdGWP extends HTMLElement {
     this.thresholdValue = parseFloat(this.getAttribute('data-threshold-value'));
     this.thresholdPercentage = Math.min((this.cartTotal / this.thresholdValue) * 100, 100);
     this.thresholdMet = this.thresholdPercentage == 100;
-    getProductsByCollectionHandle(this.gwpCollectionHandle).then((x) => renderThresholdGWP(x));
+    getProductsByCollectionHandle(this.gwpCollectionHandle).then((x) => this.renderThresholdGWP(x));
 
     this.toggleGWP(this.thresholdMet);
   }
@@ -308,6 +78,41 @@ class thresholdGWP extends HTMLElement {
       removeItemsFromCart(this.hasGwpInCart('_threshold_gwp_product'));
     }
   }
+  renderThresholdGWP(items = []) {
+    const gwp_container = document.createElement('div');
+    const threshold_gwp_container = document.querySelector('threshold-gwp');
+    gwp_container.classList.add('flex', 'flex-row', 'gap-2');
+    items.forEach((item) => {
+      const new_product_card = document.createElement('div');
+      const product_image = document.createElement('img');
+      const button = document.createElement('button');
+      button.textContent = 'add to cart';
+      button.classList.add(
+        'bg-black',
+        'text-white',
+        'pointer-cursor',
+        'py-1',
+        'px-2',
+        'm-4',
+        'transition-all',
+        'hover:bg-white',
+        'hover:text-black',
+        'border',
+        'border-solid',
+        'border-black',
+        'w-fit',
+        'text-[12px]'
+      );
+      button.addEventListener('click', () =>
+        addItemToCart(item.variants.edges[0].node.id.split('ProductVariant/').pop(), '_threshold_gwp_product')
+      );
+      product_image.src = item.images.edges[0].node.src;
+      new_product_card.append(product_image);
+      new_product_card.append(button);
+      gwp_container.appendChild(new_product_card);
+    });
+    threshold_gwp_container.append(gwp_container);
+  }
 }
 
 customElements.define('threshold-gwp', thresholdGWP);
@@ -322,8 +127,9 @@ class customerGWP extends HTMLElement {
     if (customerGWPInCart.length > 0) {
       if (this.customerIsValid == 'false') removeItemsFromCart(customerGWPInCart);
     } else if (this.customerIsValid !== 'false')
-      getProductByHandle(this.customerGWPHandle).then((x) => renderCustomerGWP(x));
+      getProductByHandle(this.customerGWPHandle).then((x) => this.renderCustomerGWP(x));
   }
+
   toggleGWP() {
     const gwpInCart = this.hasGWPInCart('_customer_gwp_product').length > 0;
     if (!gwpInCart) {
@@ -332,7 +138,21 @@ class customerGWP extends HTMLElement {
       this.classList.add('max-h-0', 'overflow-hidden');
     }
   }
-  cleanupGWP() {}
+
+  renderCustomerGWP(item = {}) {
+    const gwp_container = document.createElement('div');
+    const image_container = document.querySelector('[data-image-holder]');
+    const customer_gwp_container = document.querySelector('customer-gwp');
+    const product_image = document.createElement('img');
+    const button = document.querySelector('[data-free-gift-atc]');
+    button.addEventListener('click', () => {
+      addItemToCart(item.variants.edges[0].node.id.split('ProductVariant/').pop(), '_customer_gwp_product');
+    });
+    product_image.src = item.images.edges[0].node.src;
+    image_container.appendChild(product_image);
+    customer_gwp_container.append(gwp_container);
+    customer_gwp_container.classList.remove('max-h-0');
+  }
 }
 
 customElements.define('customer-gwp', customerGWP);
