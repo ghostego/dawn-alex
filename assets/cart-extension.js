@@ -148,8 +148,11 @@ class customerGWP extends HTMLElement {
     button.addEventListener('click', () => {
       addItemToCart(item.variants.edges[0].node.id.split('ProductVariant/').pop(), '_customer_gwp_product');
     });
-    product_image.src = item.images.edges[0].node.src;
-    image_container.appendChild(product_image);
+    console.log(image_container.children.length);
+    if (image_container.children.length == 0) {
+      product_image.src = item.images.edges[0].node.src;
+      image_container.appendChild(product_image);
+    }
     customer_gwp_container.append(gwp_container);
     customer_gwp_container.classList.remove('max-h-0');
   }
